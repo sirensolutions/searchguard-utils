@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# A tool to build a fake CA
+
+# Required envars: CA_PASSWORD
+# Optional envars: CA_CONFIG
+
+if [[ ! $CA_PASSWORD ]]; then
+    echo "You must set the envar CA_PASSWORD"
+    exit 1
+fi
+
+if [[ ! CA_CONFIG ]]; then
+    CA_CONFIG=ca.conf
+fi
+
+CA_KEY=$(awk '/^[ ]*private_key/ {print $3; exit}' < "$CA_CONFIG" | sed 's/^\$dir/\./')
+CA_CERT=$(awk '/^[ ]*certificate/ {print $3; exit}' < "$CA_CONFIG" | sed 's/^\$dir/\./')
+
+touch index.txt
+touch index.txt.attr
+echo 01 > serial
+
+openssl genrsa \
+    -out "$CA_KEY" 2048
+    -config "$CA_CONFIG"
+
+openssl req \
+    -x509 \
+    -new \
+    -nodes \
+    -key "$CA_KEY" \
+    -sha256 \
+    -days 3650 \
+    -out "$CA_CERT" \
+    -config "$CA_CONFIG"
+
+echo "Generated fake CA. Private key material in $CA_KEY - keep this file safe."
+echo "Fake root certificate in $CA_CERT - this can be distributed to clients."

@@ -1,0 +1,53 @@
+#!/bin/bash
+
+# A tool to use a fake CA to sign a csr
+# It takes a list of hosts for which csrs should be signed
+
+# Required envars: CA_PASSWORD
+# Optional envars: CA_CONFIG
+
+usage() {
+    cat <<EOF
+Usage: $0 (server|client) <filename> [<filename> ...]
+EOF
+    exit 1
+}
+
+[[ $2 ]] || usage
+
+if [[ ! $CA_PASSWORD ]]; then
+    echo "You must set the envar CA_PASSWORD"
+    exit 1
+fi
+
+if [[ ! CA_CONFIG ]]; then
+    CA_CONFIG=ca.conf
+fi
+
+case "$1" in
+    server)
+        EXTENSIONS=server_cert
+        ;;
+    client)
+        EXTENSIONS=usr_cert
+        ;;
+    *)
+        usage
+        ;;
+esac
+shift
+
+for FILE_NAME in "$@"; do
+    BASENAME=$(basename "$FILE_NAME" .csr)
+    openssl ca \
+        -in "$FILE_NAME" \
+        -notext \
+        -out $BASENAME.crt \
+        -config "$CA_CONFIG" \
+        -extensions v3_req \
+        -batch \
+        -passin "pass:$CA_PASSWORD" \
+        -extensions "$EXTENSIONS"
+
+    echo "Signed certificate in $BASENAME.crt"
+done

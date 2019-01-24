@@ -1,0 +1,64 @@
+#!/bin/bash
+
+# A quick tool to generate a key and csr for a searchguard node
+# It makes reasonable guesses for HOST_NAME, HOST_IP and HOST_DN
+
+# Required envars: KEYSTORE_PASSWORD
+# Optional envars: HOST_NAME, HOST_IP, HOST_DN
+
+if [[ ! $KEYSTORE_PASSWORD ]]; then
+    echo "You must set the envar KEYSTORE_PASSWORD"
+    exit 1
+fi
+
+if [[ ! $HOST_NAME ]]; then
+    HOST_NAME=$(hostname --fqdn)
+    echo "Assuming host name $HOST_NAME"
+fi
+if [[ ! $HOST_IP ]]; then
+    PRIMARY_INTERFACE=$(ip route | awk '/^default/ {print $5; exit}')
+    PRIMARY_IP_CIDR=$(ip address list dev $PRIMARY_INTERFACE | awk '/\s*inet[^6]/ {print $2}')
+    HOST_IP=${PRIMARY_IP_CIDR%%/*}
+    echo "Assuming host ip $HOST_IP"
+fi
+if [[ ! $HOST_DN ]]; then
+    HOST_DN=CN=$(sed 's/\./,DC=/g' <<< "$HOST_NAME")
+    echo "Assuming host dn $HOST_DN"
+fi
+
+keytool -genkey \
+       -alias "$HOST_NAME" \
+       -keystore "$HOST_NAME-keystore.p12" \
+       -keyalg RSA \
+       -keysize 2048 \
+       -storetype PKCS12 \
+       -validity 3650 \
+       -sigalg SHA256withRSA \
+       -keypass "$KEYSTORE_PASSWORD" \
+       -storepass "$KEYSTORE_PASSWORD" \
+       -dname "$HOST_DN" \
+       -ext "san=dns:$HOST_NAME,dns:localhost,ip:$HOST_IP,oid:1.2.3.4.5.5"
+
+keytool -certreq \
+       -alias "$HOST_NAME" \
+       -keystore "$HOST_NAME-keystore.p12" \
+       -file "$HOST_NAME.csr" \
+       -keyalg rsa \
+       -storetype PKCS12 \
+       -keypass "$KEYSTORE_PASSWORD" \
+       -storepass "$KEYSTORE_PASSWORD" \
+       -dname "$HOST_DN" \
+       -ext "san=dns:$HOST_NAME,dns:localhost,ip:$HOST_IP,oid:1.2.3.4.5.5"
+
+echo "Created host CSR in $HOST_NAME.csr - send this file to your CA"
+echo
+echo "Private key material is in $HOST_NAME-keystore.p12 - keep this file safe"
+
+# Now export the cleartext key for use in elasticsearch:
+openssl pkcs12 -in "$HOST_NAME.p12" \
+    -password "pass:$KEYSTORE_PASSWORD" \
+    -out "$HOST_NAME.key" \
+    -nocerts \
+    -notext \
+    -nodes
+echo "Exported cleartext private key to $HOST_NAME.key - use this file in elasticsearch"

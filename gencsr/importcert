@@ -1,0 +1,65 @@
+#!/bin/bash
+
+# A quick tool to import a cacert and host cert for an elasticsearch node
+# It makes reasonable guesses at HOST_NAME, HOST_CERT and CA_CERT
+
+# Required envars: KEYSTORE_PASSWORD, TRUSTSTORE_PASSWORD
+# Optional envars: HOST_NAME, HOST_CERT, CA_CERT
+
+if [[ ! $KEYSTORE_PASSWORD ]]; then
+    echo "You must set the envar KEYSTORE_PASSWORD"
+    exit 1
+fi
+if [[ ! $TRUSTSTORE_PASSWORD ]]; then
+    echo "You must set the envar TRUSTSTORE_PASSWORD"
+    exit 1
+fi
+
+if [[ ! $HOST_NAME ]]; then
+    HOST_NAME=$(hostname --fqdn)
+    echo "Assuming host name $HOST_NAME"
+fi
+
+# Make a guess as to what the host certificate file is called
+HOST_CERT_TRY=("$HOST_NAME.crt" "$HOST_NAME.cert" "$HOST_NAME.pem" "$HOST_NAME.crt.pem" "$HOST_NAME.cert.pem")
+if [[ ! $HOST_CERT ]]; then
+    for i in "${HOST_CERT_TRY[@]}"; do
+        if ls "$i" 2>/dev/null; then
+            HOST_CERT="$i"
+            break
+        fi
+    done
+    if [[ ! $HOST_CERT ]]; then
+        echo "Cannot find the host certificate. Please set the envar HOST_CERT"
+        exit 1
+    fi
+fi
+
+# Make a guess as to what the ca certificate is called
+CA_CERT_TRY=(ca.crt ca.cert ca.pem cacert.pem ca.crt.pem ca.cert.pem ca-cert.pem ca_cert.pem)
+if [[ ! $CA_CERT ]]; then
+    for i in "${CA_CERT_TRY[@]}"; do
+        if ls "$i" 2>/dev/null; then
+            CA_CERT="$i"
+            break
+        fi
+    done
+    if [[ ! $CA_CERT ]]; then
+        echo "Cannot find the CA certificate. Please set the envar CA_CERT"
+        exit 1
+    fi
+fi
+
+cat "$CA_CERT" "$HOST_CERT" | keytool \
+   -importcert \
+   -keystore "$HOST_NAME-keystore.p12" \
+   -storepass "$KEYSTORE_PASSWORD" \
+   -noprompt \
+   -alias "$HOST_NAME"
+
+keytool \
+   -import -v \
+   -keystore truststore.jks \
+   -storepass "$TRUSTSTORE_PASSWORD" \
+   -noprompt -alias root-ca-chain \
+   < "$CA_CERT"

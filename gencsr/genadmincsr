@@ -1,0 +1,54 @@
+#!/bin/bash
+
+# A quick tool to generate a key and csr for sgadmin
+
+# Required envars: KEYSTORE_PASSWORD
+# Optional envars: SGADMIN_DN
+
+if [[ ! $KEYSTORE_PASSWORD ]]; then
+    echo "You must set the envar KEYSTORE_PASSWORD"
+    exit 1
+fi
+
+if [[ ! $SGADMIN_DN ]]; then
+    HOST_NAME=$(hostname --fqdn)
+    SGADMIN_DN=CN=sgadmin,DC=$(sed 's/\./,DC=/g' <<< "$HOST_NAME")
+    echo "Assuming admin dn $SGADMIN_DN"
+fi
+
+keytool -genkey \
+       -alias "sgadmin" \
+       -keystore "sgadmin-keystore.p12" \
+       -keyalg RSA \
+       -keysize 2048 \
+       -storetype PKCS12 \
+       -validity 3650 \
+       -sigalg SHA256withRSA \
+       -keypass "$KEYSTORE_PASSWORD" \
+       -storepass "$KEYSTORE_PASSWORD" \
+       -dname "$SGADMIN_DN"
+
+keytool -certreq \
+       -alias "sgadmin" \
+       -keystore "sgadmin-keystore.p12" \
+       -file "sgadmin-client.csr" \
+       -keyalg rsa \
+       -storetype PKCS12 \
+       -keypass "$KEYSTORE_PASSWORD" \
+       -storepass "$KEYSTORE_PASSWORD" \
+       -dname "$SGADMIN_DN"
+
+echo "Created sgadmin CSR in sgadmin-client.csr - send this file to your CA with"
+echo "instructions that it must be signed as a *TLS client certificate*"
+echo
+echo "Private key material is in sgadmin-keystore.p12 - keep this file safe"
+
+# Now export the cleartext key for use in elasticsearch:
+openssl pkcs12 \
+    -in "sgadmin-keystore.p12" \
+    -password "pass:$KEYSTORE_PASSWORD" \
+    -out "sgadmin.key" \
+    -nocerts \
+    -notext \
+    -nodes
+echo "Exported cleartext private key to sgadmin.key - use this file in Siren Investigate"
