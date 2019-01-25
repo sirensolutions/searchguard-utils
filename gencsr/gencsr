@@ -37,7 +37,7 @@ keytool -genkey \
        -keypass "$KEYSTORE_PASSWORD" \
        -storepass "$KEYSTORE_PASSWORD" \
        -dname "$HOST_DN" \
-       -ext "san=dns:$HOST_NAME,dns:localhost,ip:$HOST_IP,oid:1.2.3.4.5.5"
+       -ext "san=dns:$HOST_NAME,ip:$HOST_IP,oid:1.2.3.4.5.5"
 
 keytool -certreq \
        -alias "$HOST_NAME" \
@@ -48,7 +48,7 @@ keytool -certreq \
        -keypass "$KEYSTORE_PASSWORD" \
        -storepass "$KEYSTORE_PASSWORD" \
        -dname "$HOST_DN" \
-       -ext "san=dns:$HOST_NAME,dns:localhost,ip:$HOST_IP,oid:1.2.3.4.5.5"
+       -ext "san=dns:$HOST_NAME,ip:$HOST_IP,oid:1.2.3.4.5.5"
 
 echo "Created host CSR in $HOST_NAME.csr - send this file to your CA"
 echo
