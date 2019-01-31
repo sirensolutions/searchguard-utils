@@ -25,7 +25,8 @@ cd /etc/elasticsearch/certs
 ./gencsr
 ```
 
-This will generate a fresh CSR that you can send to your CA (if you are using
+This will generate a fresh CSR that you can send to your CA with instructions
+to make a certificate valid for both server AND client use (if you are using
 a fake CA, then read `../fake-ca/README.md` and follow the instructions there).
 
 Your CA should return a certificate in a usable format, e.g. PEM.

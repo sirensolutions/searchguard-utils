@@ -8,7 +8,7 @@
 
 usage() {
     cat <<EOF
-Usage: $0 (server|client) <filename> [<filename> ...]
+Usage: $0 <filename> [<filename> ...]
 EOF
     exit 1
 }
@@ -24,19 +24,6 @@ if [[ ! CA_CONFIG ]]; then
     CA_CONFIG=ca.conf
 fi
 
-case "$1" in
-    server)
-        EXTENSIONS=server_cert
-        ;;
-    client)
-        EXTENSIONS=usr_cert
-        ;;
-    *)
-        usage
-        ;;
-esac
-shift
-
 for FILE_NAME in "$@"; do
     BASENAME=$(basename "$FILE_NAME" .csr)
     openssl ca \
@@ -47,7 +34,7 @@ for FILE_NAME in "$@"; do
         -extensions v3_req \
         -batch \
         -passin "pass:$CA_PASSWORD" \
-        -extensions "$EXTENSIONS"
+        -extensions "usr_cert"
 
     echo "Signed certificate in $BASENAME.crt"
 done

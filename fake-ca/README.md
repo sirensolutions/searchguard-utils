@@ -38,20 +38,14 @@ With CA_CONFIG and CA_PASSWORD set as above, change into the `~/fake-ca`
 directory, and run:
 
 ```
-./fakecasign server $FILENAME
+./fakecasign $FILENAME
 ```
 
 This will generate a server certificate for the CSR given on the command line.
 You can specify multiple files in one go:
 
 ```
-./fakecasign server *.csr
-```
-
-In the case of a client certificate (e.g. for sgadmin), you should instead run:
-
-```
-./fakecasign client $FILENAME
+./fakecasign *.csr
 ```
 
 Certificates will be created in the current directory with the extension `.crt`
