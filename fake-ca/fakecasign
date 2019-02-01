@@ -13,7 +13,7 @@ EOF
     exit 1
 }
 
-[[ $2 ]] || usage
+[[ $1 ]] || usage
 
 if [[ ! $CA_PASSWORD ]]; then
     echo "You must set the envar CA_PASSWORD"
