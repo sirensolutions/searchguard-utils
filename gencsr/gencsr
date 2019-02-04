@@ -59,6 +59,5 @@ openssl pkcs12 -in "$HOST_NAME.p12" \
     -password "pass:$KEYSTORE_PASSWORD" \
     -out "$HOST_NAME.key" \
     -nocerts \
-    -notext \
     -nodes
 echo "Exported cleartext private key to $HOST_NAME.key - use this file in elasticsearch"

@@ -49,6 +49,5 @@ openssl pkcs12 \
     -password "pass:$KEYSTORE_PASSWORD" \
     -out "sgadmin.key" \
     -nocerts \
-    -notext \
     -nodes
 echo "Exported cleartext private key to sgadmin.key - use this file in Siren Investigate"
