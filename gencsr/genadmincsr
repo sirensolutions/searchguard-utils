@@ -36,7 +36,7 @@ keytool -certreq \
        -storetype PKCS12 \
        -keypass "$KEYSTORE_PASSWORD" \
        -storepass "$KEYSTORE_PASSWORD" \
-       -dname "$SGADMIN_DN"
+       -dname "$SGADMIN_DN" || exit 1
 
 echo "Created sgadmin CSR in sgadmin-client.csr - send this file to your CA with"
 echo "instructions that it must be signed as a *TLS client certificate*"
@@ -49,5 +49,5 @@ openssl pkcs12 \
     -password "pass:$KEYSTORE_PASSWORD" \
     -out "sgadmin.key" \
     -nocerts \
-    -nodes
+    -nodes || exit 2
 echo "Exported cleartext private key to sgadmin.key - use this file in Siren Investigate"
