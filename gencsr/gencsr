@@ -55,7 +55,7 @@ echo
 echo "Private key material is in $HOST_NAME-keystore.p12 - keep this file safe"
 
 # Now export the cleartext key for use in elasticsearch:
-openssl pkcs12 -in "$HOST_NAME.p12" \
+openssl pkcs12 -in "$HOST_NAME-keystore.p12" \
     -password "pass:$KEYSTORE_PASSWORD" \
     -out "$HOST_NAME.key" \
     -nocerts \
