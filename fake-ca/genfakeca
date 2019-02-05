@@ -10,7 +10,7 @@ if [[ ! $CA_PASSWORD ]]; then
     exit 1
 fi
 
-if [[ ! CA_CONFIG ]]; then
+if [[ ! $CA_CONFIG ]]; then
     CA_CONFIG=ca.conf
 fi
 
