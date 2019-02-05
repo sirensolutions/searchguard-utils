@@ -22,8 +22,7 @@ touch index.txt.attr
 echo 01 > serial
 
 openssl genrsa \
-    -out "$CA_KEY" 2048 \
-    -config "$CA_CONFIG"
+    -out "$CA_KEY" 2048
 
 openssl req \
     -x509 \
