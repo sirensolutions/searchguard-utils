@@ -53,9 +53,16 @@ export TRUSTSTORE_PASSWORD="correct horse battery staple"
 ```
 
 This will attempt to find the host certificate automatically in the current
-directory and import it to a pkcs12 keystore in the format created by `gencsr`.
-It will also load the CA cert into a truststore with the given password.
+directory and import it to an existing pkcs12 keystore in the format created by
+`gencsr`. It will also load the CA cert into a truststore.
 
+To load the sgadmin cert, run:
+
+```
+./importadmincert
+```
+
+This will load the sgadmin cert into the existing pkcs12 keystore for sgadmin.
 
 Advanced options
 ================
