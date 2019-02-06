@@ -41,6 +41,12 @@ if [[ ! $CA_CERT ]]; then
     fi
 fi
 
+# sgadmin-keystore.p12 should already exist
+if ! -f sgadmin-keystore.p12; then
+    echo "The keystore sgadmin-keystore.p12 should already exist"
+    exit 1
+fi
+
 cat "$CA_CERT" "$ADMIN_CERT" | keytool \
    -importcert \
    -keystore "sgadmin-keystore.p12" \

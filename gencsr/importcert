@@ -50,6 +50,12 @@ if [[ ! $CA_CERT ]]; then
     fi
 fi
 
+# $HOST_NAME-keystore.p12 should already exist
+if ! -f $HOST_NAME-keystore.p12; then
+    echo "The keystore $HOST_NAME-keystore.p12 should already exist"
+    exit 1
+fi
+
 cat "$CA_CERT" "$HOST_CERT" | keytool \
    -importcert \
    -keystore "$HOST_NAME-keystore.p12" \
