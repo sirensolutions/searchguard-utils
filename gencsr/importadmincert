@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# A quick tool to import a cacert and host cert for an sgadmin client
+# A quick tool to import a cacert and client cert for sgadmin
 # It makes reasonable guesses at ADMIN_CERT and CA_CERT
 
 # Required envars: KEYSTORE_PASSWORD
