@@ -31,14 +31,14 @@ keytool -genkey \
 keytool -certreq \
        -alias "sgadmin" \
        -keystore "sgadmin-keystore.p12" \
-       -file "sgadmin-client.csr" \
+       -file "sgadmin.csr" \
        -keyalg rsa \
        -storetype PKCS12 \
        -keypass "$KEYSTORE_PASSWORD" \
        -storepass "$KEYSTORE_PASSWORD" \
        -dname "$SGADMIN_DN" || exit 1
 
-echo "Created sgadmin CSR in sgadmin-client.csr - send this file to your CA with"
+echo "Created sgadmin CSR in sgadmin.csr - send this file to your CA with"
 echo "instructions that it must be signed as a *TLS client certificate*"
 echo
 echo "Private key material is in sgadmin-keystore.p12 - keep this file safe"
