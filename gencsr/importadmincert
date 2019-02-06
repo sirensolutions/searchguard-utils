@@ -1,0 +1,49 @@
+#!/bin/bash
+
+# A quick tool to import a cacert and host cert for an sgadmin client
+# It makes reasonable guesses at ADMIN_CERT and CA_CERT
+
+# Required envars: KEYSTORE_PASSWORD
+# Optional envars: ADMIN_CERT, CA_CERT
+
+if [[ ! $KEYSTORE_PASSWORD ]]; then
+    echo "You must set the envar KEYSTORE_PASSWORD"
+    exit 1
+fi
+
+# Make a guess as to what the admin certificate file is called
+ADMIN_CERT_TRY=(sgadmin.crt sgadmin.cert sgadmin.pem sgadmin.crt.pem sgadmin.cert.pem sgadmin-client.crt sgadmin-client.cert sgadmin-client.pem sgadmin-client.crt.pem sgadmin-client.cert.pem)
+if [[ ! $ADMIN_CERT ]]; then
+    for i in "${ADMIN_CERT_TRY[@]}"; do
+        if ls "$i" 2>/dev/null; then
+            ADMIN_CERT="$i"
+            break
+        fi
+    done
+    if [[ ! $ADMIN_CERT ]]; then
+        echo "Cannot find the admin certificate. Please set the envar ADMIN_CERT"
+        exit 1
+    fi
+fi
+
+# Make a guess as to what the ca certificate is called
+CA_CERT_TRY=(ca.crt ca.cert ca.pem cacert.pem ca.crt.pem ca.cert.pem ca-cert.pem ca_cert.pem)
+if [[ ! $CA_CERT ]]; then
+    for i in "${CA_CERT_TRY[@]}"; do
+        if ls "$i" 2>/dev/null; then
+            CA_CERT="$i"
+            break
+        fi
+    done
+    if [[ ! $CA_CERT ]]; then
+        echo "Cannot find the CA certificate. Please set the envar CA_CERT"
+        exit 1
+    fi
+fi
+
+cat "$CA_CERT" "$ADMIN_CERT" | keytool \
+   -importcert \
+   -keystore "sgadmin-keystore.p12" \
+   -storepass "$KEYSTORE_PASSWORD" \
+   -noprompt \
+   -alias "sgadmin"
