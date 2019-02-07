@@ -9,6 +9,7 @@ Files:
 * gencsr
 * genadmincsr
 * importcert
+* importadmincert
 
 Make sure to set the envar KEYSTORE_PASSWORD to something nontrivial:
 

@@ -42,7 +42,7 @@ if [[ ! $CA_CERT ]]; then
 fi
 
 # sgadmin-keystore.p12 should already exist
-if ! -f sgadmin-keystore.p12; then
+if [[ ! -f sgadmin-keystore.p12 ]]; then
     echo "The keystore sgadmin-keystore.p12 should already exist"
     exit 1
 fi
