@@ -2,10 +2,14 @@ ES_BASE=/opt/elasticsearch
 SG_CONF_CACHE=/opt/elasticsearch/sgconfig
 SG_HOST=localhost
 SG_PORT=9300
-KEY_STORE=/opt/elasticsearch/client-certificates/sgadmin-keystore.jks
+
+# Use the following for JKS or P12 keystores
+KEY_STORE=/opt/elasticsearch/client-certificates/sgadmin-keystore.p12
 KEY_PASS="correct horse battery staple"
-TRUST_STORE=/opt/elasticsearch/config/truststore.jks
+TRUST_STORE=/opt/elasticsearch/config/truststore.p12
 TRUST_PASS="correct horse battery staple"
+
+# Use the following for PEM certificates
 #KEY_FILE=/opt/elasticsearch/client-certificates/sgadmin.key
 #KEY_PASS="correct horse battery staple"
 #CERT_FILE=/opt/elasticsearch/client-certificates/sgadmin.crt
