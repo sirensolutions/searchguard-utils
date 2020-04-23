@@ -25,16 +25,17 @@ if [[ ! $CA_CONFIG ]]; then
 fi
 
 for FILE_NAME in "$@"; do
+    DIRNAME=$(dirname "$FILE_NAME")
     BASENAME=$(basename "$FILE_NAME" .csr)
     openssl ca \
         -in "$FILE_NAME" \
         -notext \
-        -out $BASENAME.crt \
+        -out "$DIRNAME/$BASENAME.crt" \
         -config "$CA_CONFIG" \
         -extensions v3_req \
         -batch \
         -passin "pass:$CA_PASSWORD" \
         -extensions "usr_cert"
 
-    echo "Signed certificate in $BASENAME.crt"
+    echo "Signed certificate in $DIRNAME/$BASENAME.crt"
 done
