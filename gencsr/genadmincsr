@@ -3,13 +3,17 @@
 # A quick tool to generate a key and csr for sgadmin
 
 # Required envars: KEYSTORE_PASSWORD
-# Optional envars: SGADMIN_DN
+# Optional envars: SGADMIN_DN HOST_NAME
 
 if [[ ! $KEYSTORE_PASSWORD ]]; then
     echo "You must set the envar KEYSTORE_PASSWORD"
     exit 1
 fi
 
+if [[ ! $HOST_NAME ]]; then
+    HOST_NAME=$(hostname --fqdn)
+    echo "Assuming host name $HOST_NAME"
+fi
 if [[ ! $SGADMIN_DN ]]; then
     HOST_NAME=$(hostname --fqdn)
     SGADMIN_DN=CN=sgadmin,DC=$(sed 's/\./,DC=/g' <<< "$HOST_NAME")
