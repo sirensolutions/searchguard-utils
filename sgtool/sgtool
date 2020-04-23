@@ -29,7 +29,7 @@ fi
 if [[ ! $ES_BASE ]]; then
     die "No elasticsearch installation found"
 fi
-dir=${ES_BASE}/plugins/search-guard-*
+dir=$(ls -d ${ES_BASE}/plugins/search-guard-*|head -1)
 PLUGIN_DIR=${dir##* }
 
 if [[ ! $SG_HOST ]]; then
