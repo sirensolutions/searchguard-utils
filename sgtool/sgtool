@@ -58,9 +58,9 @@ else
     TRUST_FLAGS=("-cert" "$CERT_FILE" "-cacert" "$CA_FILE")
 fi
 
-COMMAND="bash ${PLUGIN_DIR}/tools/sgadmin.sh \
+COMMAND=("bash" "${PLUGIN_DIR}/tools/sgadmin.sh" \
     "${TRUST_FLAGS[@]}" "${KEY_FLAGS[@]}" ${SG_EXTRA_FLAGS} \
-    "${CN_FLAGS[@]}" -h "${SG_HOST}" -p "${SG_PORT}" -nhnv"
+    "${CN_FLAGS[@]}" "-h" "${SG_HOST}" "-p" "${SG_PORT}" "-nhnv")
 
 ############
 
@@ -70,11 +70,11 @@ init)
     if [[ ! -f $SG_CONF_CACHE/sg_config.yml ]]; then
         die "No config file found"
     fi
-    $COMMAND -cd $SG_CONF_CACHE
+    "${COMMAND[@]}" -cd $SG_CONF_CACHE
     ;;
 
 reload)
-    $COMMAND -rl
+    "${COMMAND[@]}" -rl
     ;;
 
 dump)
@@ -83,7 +83,7 @@ dump)
         mkdir -p $SG_CONF_CACHE
     fi
     cd $SG_CONF_CACHE
-    $COMMAND -r
+    "${COMMAND[@]}" -r
     for file in ${filemap[*]}; do
         base=$(basename $file .yml)
         newfile=$(ls -t ${base}_????-???-??_??-??-??.yml | head -1)
@@ -100,7 +100,7 @@ push)
     if [[ ! -f $file ]]; then
         die "Could not find file to push"
     fi
-    $COMMAND -f "$file" -t "$type"
+    "${COMMAND[@]}" -f "$file" -t "$type"
     ;;
 
 *)
