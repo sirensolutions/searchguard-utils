@@ -95,6 +95,12 @@ dump)
     done
     ;;
 
+migrate)
+    echo "Migrating running configuration to latest format"
+    tmpdir=$(mktemp -d)
+    "${COMMAND[@]}" -migrate $tmpdir
+    rm -rf $tmpdir
+
 push)
     type="$2"
     file="${SG_CONF_CACHE}/${filemap[$type]}"
@@ -119,10 +125,17 @@ reload
 dump
         Dump running searchguard configuration to the cache directory
 
+migrate
+        Migrate running searchguard configuration to latest format
+
 push <configtype>
         Update only the given configuration type from the cache directory,
         where <configtype> is one of:
         ${filemap_keys}
+
+$0 reads its configuration from /etc/sgtool. To use a different configuration
+file, set the environment variable SGTOOL_CONF.
+
 EOF
     ;;
 
