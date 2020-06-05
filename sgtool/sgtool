@@ -70,6 +70,7 @@ init)
     if [[ ! -f $SG_CONF_CACHE/sg_config.yml ]]; then
         die "No config file found"
     fi
+    "${COMMAND[@]}" --enable-shard-allocation
     "${COMMAND[@]}" -cd $SG_CONF_CACHE
     ;;
 
