@@ -16,6 +16,7 @@ filemap["config"]="sg_config.yml"
 filemap["internalusers"]="sg_internal_users.yml"
 filemap["roles"]="sg_roles.yml"
 filemap["rolesmapping"]="sg_roles_mapping.yml"
+filemap["tenants"]="sg_tenants.yml"
 filemap_keys="${!filemap[@]}"
 
 if [[ ! $SGTOOL_CONF ]]; then
@@ -88,10 +89,7 @@ dump)
     for file in ${filemap[*]}; do
         base=$(basename $file .yml)
         newfile=$(ls -t ${base}_????-???-??_??-??-??.yml | head -1)
-        if [[ ! -f $newfile ]]; then
-            die "Freshly dumped file has gone missing! ABORT"
-        fi
-        mv $newfile $file
+        [[ ! -f $newfile ]] || mv $newfile $file
     done
     ;;
 
@@ -105,7 +103,7 @@ migrate)
 push)
     type="$2"
     file="${SG_CONF_CACHE}/${filemap[$type]}"
-    if [[ ! -f $file ]]; then
+    [[ ! -f $file ]]; then
         die "Could not find file to push"
     fi
     "${COMMAND[@]}" -f "$file" -t "$type"
