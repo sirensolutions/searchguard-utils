@@ -103,7 +103,7 @@ migrate)
 push)
     type="$2"
     file="${SG_CONF_CACHE}/${filemap[$type]}"
-    [[ ! -f $file ]]; then
+    if [[ ! -f $file ]]; then
         die "Could not find file to push"
     fi
     "${COMMAND[@]}" -f "$file" -t "$type"
