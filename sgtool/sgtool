@@ -10,6 +10,16 @@ die() {
     exit 1
 }
 
+std_name() {
+    local file=$1
+    local base=$(basename $file .yml)
+    local newfile=$(ls -t ${base}_????-???-??_??-??-??.yml | head -1)
+    [[ ! -f $newfile ]] || mv $newfile $file
+}
+
+# Make java shut up
+JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))
+
 declare -A filemap
 filemap["actiongroups"]="sg_action_groups.yml"
 filemap["config"]="sg_config.yml"
@@ -87,10 +97,39 @@ dump)
     cd $SG_CONF_CACHE
     "${COMMAND[@]}" -r
     for file in ${filemap[*]}; do
-        base=$(basename $file .yml)
-        newfile=$(ls -t ${base}_????-???-??_??-??-??.yml | head -1)
-        [[ ! -f $newfile ]] || mv $newfile $file
+        std_name $file
     done
+    ;;
+
+passwd)
+    [[ $2 ]] || die -1 "Usage: $0 $1 <username> [<password>]"
+    export SGTOOL_USER="$2"
+    if [[ $3 ]]; then
+        password="$3"
+    else
+        while
+            read -s -p "Password: " password; echo
+            read -s -p "Confirm: " confirm; echo
+            [[ "$password" != "$confirm" ]]
+        do
+            echo "Passwords do not match"
+        done
+    fi
+    type=internalusers
+    file="${filemap[$type]}"
+    tmpdir=$(mktemp -d)
+    cd $tmpdir
+    "${COMMAND[@]}" -r
+    std_name $file
+    export SGTOOL_HASH=$(bash "${PLUGIN_DIR}/tools/hash.sh" -p "$password")
+    perl -pi -e '
+        if(m[^$ENV{"SGTOOL_USER"}:\s+]) { $go=1 }
+        if($go) {
+            if(s[(^\s*hash:\s+").*("\s+$)][\1$ENV{"SGTOOL_HASH"}\2]) {$go=0};
+        }
+        ' "$file"
+    "${COMMAND[@]}" -f "$file" -t "$type"
+    rm -rf $tmpdir
     ;;
 
 migrate)
@@ -116,16 +155,19 @@ Usage: $0 <command>
 Where <command> is one of:
 
 init
-        Initialise searchguard from the configuration cache directory
+        Initialise searchguard from the configuration cache directory.
 
 reload
-        Reload searchguard configuration
+        Reload searchguard configuration.
 
 dump
-        Dump running searchguard configuration to the cache directory
+        Dump running searchguard configuration to the cache directory.
 
 migrate
-        Migrate running searchguard configuration to latest format
+        Migrate running searchguard configuration to latest format.
+
+passwd <user> [<password>]
+        Change a user password. If <password> is not supplied, it will prompt.
 
 push <configtype>
         Update only the given configuration type from the cache directory,
