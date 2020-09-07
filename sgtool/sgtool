@@ -6,8 +6,8 @@
 set -e
 
 die() {
-    echo $1
-    exit 1
+    echo $2 >&2
+    exit $1
 }
 
 std_name() {
@@ -15,6 +15,40 @@ std_name() {
     local base=$(basename $file .yml)
     local newfile=$(ls -t ${base}_????-???-??_??-??-??.yml | head -1)
     [[ ! -f $newfile ]] || mv $newfile $file
+}
+
+usage() {
+    cat <<EOF
+Usage: $0 <command>
+
+Where <command> is one of:
+
+init
+        Initialise searchguard from the configuration cache directory.
+
+reload
+        Reload searchguard configuration.
+
+dump
+        Dump running searchguard configuration to the cache directory.
+
+migrate
+        Migrate running searchguard configuration to latest format.
+
+passwd <user> [<password>]
+        Change a user password. If <password> is not supplied, it will prompt.
+
+push <configtype>
+        Update only the given configuration type from the cache directory,
+        where <configtype> is one of:
+        ${filemap_keys}
+
+$0 reads its configuration from /etc/sgtool. To use a different configuration
+file, set the environment variable SGTOOL_CONF.
+
+EOF
+
+exit 1
 }
 
 # Make java shut up
@@ -29,16 +63,18 @@ filemap["rolesmapping"]="sg_roles_mapping.yml"
 filemap["tenants"]="sg_tenants.yml"
 filemap_keys="${!filemap[@]}"
 
+[[ $1 && "$1" != "help" && "$1" != "--help" && "$1" != "-h" ]] || usage
+
 if [[ ! $SGTOOL_CONF ]]; then
     SGTOOL_CONF=/etc/sgtool
 fi
 if [[ ! -f $SGTOOL_CONF ]]; then
-    die "Cannot read config file $SGTOOL_CONF"
+    die 2 "Cannot read config file $SGTOOL_CONF; please set the envar SGTOOL_CONF"
 fi
 . ${SGTOOL_CONF}
 
 if [[ ! $ES_BASE ]]; then
-    die "No elasticsearch installation found"
+    die 3 "No elasticsearch installation found"
 fi
 dir=$(ls -d ${ES_BASE}/plugins/search-guard-*|head -1)
 PLUGIN_DIR=${dir##* }
@@ -79,7 +115,7 @@ case "$1" in
 
 init)
     if [[ ! -f $SG_CONF_CACHE/sg_config.yml ]]; then
-        die "No config file found"
+        die 4 "No config file found"
     fi
     "${COMMAND[@]}" --enable-shard-allocation
     "${COMMAND[@]}" -cd $SG_CONF_CACHE
@@ -102,7 +138,7 @@ dump)
     ;;
 
 passwd)
-    [[ $2 ]] || die -1 "Usage: $0 $1 <username> [<password>]"
+    [[ $2 ]] || die 5 "Usage: $0 $1 <username> [<password>]"
     export SGTOOL_USER="$2"
     if [[ $3 ]]; then
         password="$3"
@@ -143,41 +179,13 @@ push)
     type="$2"
     file="${SG_CONF_CACHE}/${filemap[$type]}"
     if [[ ! -f $file ]]; then
-        die "Could not find file to push"
+        die 6 "Could not find file to push"
     fi
     "${COMMAND[@]}" -f "$file" -t "$type"
     ;;
 
 *)
-    cat <<EOF
-Usage: $0 <command>
-
-Where <command> is one of:
-
-init
-        Initialise searchguard from the configuration cache directory.
-
-reload
-        Reload searchguard configuration.
-
-dump
-        Dump running searchguard configuration to the cache directory.
-
-migrate
-        Migrate running searchguard configuration to latest format.
-
-passwd <user> [<password>]
-        Change a user password. If <password> is not supplied, it will prompt.
-
-push <configtype>
-        Update only the given configuration type from the cache directory,
-        where <configtype> is one of:
-        ${filemap_keys}
-
-$0 reads its configuration from /etc/sgtool. To use a different configuration
-file, set the environment variable SGTOOL_CONF.
-
-EOF
+    usage
     ;;
 
 esac
