@@ -157,7 +157,13 @@ passwd)
     cd $tmpdir
     "${COMMAND[@]}" -r
     std_name $file
-    export SGTOOL_HASH=$(bash "${PLUGIN_DIR}/tools/hash.sh" -p "$password")
+    export SGTOOL_HASH=$(java $JAVA_OPTS \
+        -cp "$PLUGIN_DIR/../search-guard-ssl/*:$PLUGIN_DIR/*:$PLUGIN_DIR/deps/*:$PLUGIN_DIR/../../lib/*" \
+        com.floragunn.searchguard.tools.Hasher -p "$password" \
+        | sed 's/^\$2y/\$2b/')
+        # sed is required because Hasher produces PHP-specific cipher tagging,
+        # but searchguard doesn't understand it, only the BSD-standard tag
+        # See https://en.wikipedia.org/wiki/Bcrypt
     perl -pi -e '
         if(m[^$ENV{"SGTOOL_USER"}:\s+]) { $go=1 }
         if($go) {
